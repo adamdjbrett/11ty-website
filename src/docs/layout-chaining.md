@@ -4,6 +4,7 @@ eleventyNavigation:
   key: Layout Chaining
   excerpt: Wrap layouts in other layouts.
 ---
+
 # Layout Chaining
 
 Your layouts can also use a layout! Add the same `layout` front matter data to your layout template file and it’ll chain. You do not have to use the same template engine across layouts and content, you can mix and match.
@@ -17,56 +18,46 @@ To chain a layout, let’s look at an example:
 layout: mainlayout.njk
 title: My Rad Blog
 ---
+
 # My Rad Markdown Blog Post
 ```
 
 We want to add a main element around our post’s content because we like accessibility.
 
-<seven-minute-tabs>
-  <div role="tablist" aria-label="Template Language Chooser">
-    Language:
-    <a href="#mainlayout-njk" id="mainlayout-njk-btn" role="tab" aria-controls="mainlayout-njk" aria-selected="true">Nunjucks</a>
-    <a href="#mainlayout-11tyjs" id="mainlayout-11tyjs-btn" role="tab" aria-controls="mainlayout-11tyjs" aria-selected="false">11ty.js</a>
-  </div>
-  <div id="mainlayout-njk" role="tabpanel" aria-labelledby="mainlayout-njk-btn">
-    <p>Here’s what <code>mainlayout.njk</code> would look like:</p>
-    {%- codetitle "_includes/mainlayout.njk" %}
-    {%- highlight "html" %}
-    {%- include "examples/layout-chaining/mainlayout.njk" %}
-    {%- endhighlight %}
-  </div>
-  <div id="mainlayout-11tyjs" role="tabpanel" aria-labelledby="mainlayout-11tyjs-btn">
-    <p>Here’s what <code>mainlayout.11ty.js</code> would look like:</p>
-    {%- codetitle "_includes/mainlayout.11ty.js" %}
-    {%- highlight "js" %}
-    {%- include "examples/layout-chaining/mainlayout.11ty.js" %}
-    {%- endhighlight %}
-  </div>
-</seven-minute-tabs>
+Here’s what `mainlayout.njk` would look like:
+
+{% codetitle "_includes/mainlayout.njk" %}
+{% highlight "html" %}
+{% include "snippets/layout-chaining/mainlayout.njk" %}
+{% endhighlight %}
 
 This layout would then be itself wrapped in the same `mylayout.njk` we used in our previous example:
 
 {% codetitle "_includes/mylayout.njk" %}
 
 {% raw %}
+
 ```html
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{title}}</title>
-  </head>
-  <body>
-    {{ content | safe }}
-  </body>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>{{title}}</title>
+	</head>
+	<body>
+		{{ content | safe }}
+	</body>
 </html>
 ```
+
 {% endraw %}
 
 Used together, this would output:
 
-{% codetitle "_site/layout-chain-example/index.html" %}
+{% callout "demo" %}
+
+{% codetitle "_site/layout-chain-example/index.html", "Output Filename" %}
 
 ```html
 <!doctype html>
@@ -83,6 +74,8 @@ Used together, this would output:
   </body>
 </html>
 ```
+
+{% endcallout %}
 
 ## Addendum about existing Templating features
 

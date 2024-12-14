@@ -2,9 +2,7 @@
 permalink: /imports/facepile.html
 ---
 <div class="facepile">
-{%- for author in sites | topAuthors | shuffle %}
-{%- if author.eligibleCount > 0 -%}
-	<a href="/authors/{{ author.name | slug }}/">{% avatarlocalcache "twitter", author.name %}<span class="sr-only">{{ author.name }}</span></a>
-{%- endif -%}
+{%- for author in authors | values | shuffle(110) %}
+	<a href="/authors/{{ author.name | slug }}/">{% communityavatar author.name %}<span class="sr-only">{{ author.name }}</span></a>
 {%- endfor %}
 </div>

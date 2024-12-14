@@ -1,7 +1,7 @@
-module.exports = {
+export default {
 	outdated: false,
 	prerelease: false,
-	eleventyMinimumNodeVersion: 12,
-	githubEdit: "https://github.com/11ty/11ty-website/blob/master/",
-	now: new Date()
+	githubEdit: "https://github.com/11ty/11ty-website/tree/main/",
+	now: new Date(),
+	env: process.env.NODE_ENV,
 };

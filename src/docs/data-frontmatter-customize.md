@@ -1,40 +1,53 @@
 ---
 eleventyNavigation:
   parent: Front Matter Data
-  key: Customize Front Matter Parsing
+  key: Custom Front Matter
   order: 1
 relatedLinks:
   /docs/data-custom/: Custom Data File Formats
 ---
-# Customize Front Matter Parsing {% addedin "0.9.0" %}
+
+# Custom Front Matter Options {% addedin "0.9.0" %}
+
+{% tableofcontents %}
 
 Eleventy uses the [`gray-matter` npm package](https://www.npmjs.com/package/gray-matter) for parsing front matter. `gray-matter` allows additional options that aren’t available by default in Eleventy.
 
 Check out the [full list of available `gray-matter` options](https://www.npmjs.com/package/gray-matter#options). By default, Eleventy uses `gray-matter`’s default options.
 
-{% codetitle ".eleventy.js" %}
+- [**Related**: Change the default Front Matter syntax project-wide](/docs/data-frontmatter/#change-the-default-format-project-wide)
 
-```js
-module.exports = function(eleventyConfig) {
-  eleventyConfig.setFrontMatterParsingOptions({
-    /* … */
-  });
-};
+{% include "snippets/frontmatter/options.njk" %}
+
+### Example: using TOML for front matter parsing {% addedin "0.9.0" %}
+
+While Eleventy does include support for [JSON, YAML, and JS front matter out of the box](/docs/data-frontmatter/#alternative-front-matter-formats), you may want to add additional formats too.
+
+{% include "snippets/frontmatter/toml.njk" %}
+
+For more information, read [this example on the `gray-matter` documentation](https://www.npmjs.com/package/gray-matter#optionsengines).
+
+Now you can use TOML in your front matter like this:
+
+{% codetitle "sample.md" %}
+
+```markdown
+---toml
+title = "My page title using TOML"
+---
+
+<!doctype html>
+<html>
+…
 ```
+
+### Example: use JavaScript in your front matter {% addedin "0.9.0" %}
+
+This section has moved to the [Frontmatter Documentation](/docs/data-frontmatter.md#javascript-front-matter).
 
 ### Example: Parse excerpts from content {% addedin "0.9.0" %}
 
-{% codetitle ".eleventy.js" %}
-
-```js
-module.exports = function(eleventyConfig) {
-  eleventyConfig.setFrontMatterParsingOptions({
-    excerpt: true,
-    // Optional, default is "---"
-    excerpt_separator: "<!-- excerpt -->"
-  });
-};
-```
+{% include "snippets/frontmatter/excerpts.njk" %}
 
 Now you can do things like this:
 
@@ -44,8 +57,11 @@ Now you can do things like this:
 ---
 title: My page title
 ---
+
 This is the start of my content and this will be shown as the excerpt.
+
 <!-- excerpt -->
+
 This is a continuation of my content…
 ```
 
@@ -64,52 +80,6 @@ This is a continuation of my content…
 
 If you don’t want to use `page.excerpt` to store your excerpt value, then use your own `excerpt_alias` option ([any valid path to Lodash Set will work](https://lodash.com/docs/4.17.15#set)) like so:
 
-{% codetitle ".eleventy.js" %}
-
-```js
-module.exports = function(eleventyConfig) {
-  eleventyConfig.setFrontMatterParsingOptions({
-    excerpt: true,
-    // Eleventy custom option
-    // The variable where the excerpt will be stored.
-    excerpt_alias: 'my_custom_excerpt'
-  });
-};
-```
+{% include "snippets/frontmatter/excerptsloc.njk" %}
 
 Using `excerpt_alias: 'my_custom_excerpt'` means that the excerpt will be available in your templates as the `my_custom_excerpt` variable instead of `page.excerpt`.
-
-### Example: using TOML for front matter parsing {% addedin "0.9.0" %}
-
-While Eleventy does include support for [JSON, YAML, and JS front matter out of the box](/docs/data-frontmatter/#alternative-front-matter-formats), you may want to add additional formats too.
-
-{% codetitle ".eleventy.js" %}
-
-```js
-const toml = require("toml");
-
-module.exports = function(eleventyConfig) {
-  eleventyConfig.setFrontMatterParsingOptions({
-    engines: {
-      toml: toml.parse.bind(toml)
-    }
-  });
-};
-```
-
-For more information, read [this example on the `gray-matter` documentation](https://www.npmjs.com/package/gray-matter#optionsengines).
-
-{% callout "warn" %}<strong>Windows users</strong>: There is an upstream issue with the TOML dependency used here: <code>Expected "\n" but end of input found.</code>, logged at <a href="https://github.com/11ty/eleventy/issues/586">Eleventy #586</a>.{% endcallout %}
-
-Now you can use TOML in your front matter like this:
-
-{% codetitle "sample.md" %}
-
-```markdown
----toml
-title = "My page title using TOML"
----
-<!doctype html>
-<html>
-…
-```

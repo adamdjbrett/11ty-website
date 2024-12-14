@@ -3,6 +3,8 @@
 	"excludeFromSidebar": true,
 	"layout": "layouts/blog.md",
 	"permalink": "/blog/{{ page.fileSlug }}/",
-	"feedTitle": "Eleventy Blog",
-	"feedUrl": "/blog/feed.xml"
+	"postAuthor": "zachleat",
+	"postAuthors": {
+		"zachleat": "https://www.zachleat.com/"
+	}
 }

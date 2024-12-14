@@ -4,70 +4,110 @@ eleventyNavigation:
   parent: Configuration
   order: 11
 ---
+
 # Watch and Serve Configuration
 
-## Watch JavaScript Dependencies {% addedin "0.7.0" %}
+{% tableofcontents %}
 
-When in `--watch` mode, Eleventy will spider the dependencies of your [JavaScript Templates](/docs/languages/javascript/) (`.11ty.js`), [JavaScript Data Files](/docs/data-js/) (`.11tydata.js` or `_data/**/*.js`), or Configuration File (usually `.eleventy.js`) to watch those files too. Files in `node_modules` directories are ignored. This feature is _enabled by default_.
+<div id="browsersync"></div>
+<div id="swap-back-to-browsersync"></div>
 
-{% codetitle ".eleventy.js" %}
+## Eleventy Dev Server {% addedin "2.0.0" %}
 
-```js
-module.exports = function(eleventyConfig) {
-  // Enabled by default
-  eleventyConfig.setWatchJavaScriptDependencies(false);
-};
-```
+Starting in Eleventy v2.0, we bundle a [dedicated Development Server](/docs/dev-server/). The previous development server used [Browsersync, which you can still use with Eleventy if you’d like](/docs/server-browsersync/).
 
 ## Add Your Own Watch Targets {% addedin "0.10.0" %}
 
 The `addWatchTarget` config method allows you to manually add a file or directory for Eleventy to watch. When the file or the files in this directory change Eleventy will trigger a build. This is useful if Eleventy is not directly aware of any external file dependencies.
 
-{% codetitle ".eleventy.js" %}
-
-```js
-module.exports = function(eleventyConfig) {
-  eleventyConfig.addWatchTarget("./src/scss/");
+{% set codeContent %}
+export default function(eleventyConfig) {
+	eleventyConfig.addWatchTarget("./src/scss/");
 };
-```
+{% endset %}
+{% include "snippets/configDefinition.njk" %}
 
-Eleventy will not add a watch for files or folders that are in `.gitignore`, unless `setUseGitIgnore` is turned off. See the chapter on [ignore files](/docs/ignores/#opt-out-of-using-.gitignore).
+**Advanced usage note:** This works with [`chokidar` under the hood](https://github.com/paulmillr/chokidar#api) and chokidar uses [`picomatch` for globbing](https://github.com/micromatch/picomatch):
 
-## Override Browsersync Server Options {% addedin "0.7.0" %}
+- Both `**/*.(png|jpeg)` and `**/*.{png,jpeg}` are valid globs to matches any `png` or `jpeg` file in your project.
 
-Useful if you want to change or override the default Browsersync configuration. Find the Eleventy defaults in [`EleventyServe.js`](https://github.com/11ty/eleventy/blob/master/src/EleventyServe.js). Take special note that Eleventy does not use Browsersync’s watch options and trigger reloads manually after our own internal watch methods are complete. See full options list on the [Browsersync documentation](https://browsersync.io/docs/options).
+### Reset configuration {% addedin "3.0.0" %}
 
-_(Read more at [Issue #123](https://github.com/11ty/eleventy/issues/123))_
+We do automatically look for dependencies in your configuration file based on JavaScript `require` or `import`—watch targets not included in that dependency graph will not reset or re-run your configuration automatically.
 
-{% codetitle ".eleventy.js" %}
+To reset your configuration for a specific watch target, use the `resetConfig` option.
 
-```js
-module.exports = function(eleventyConfig) {
-  eleventyConfig.setBrowserSyncConfig({
-    notify: true
-  });
+{% set codeContent %}
+export default function(eleventyConfig) {
+	// You probably don’t need this
+	eleventyConfig.addWatchTarget("./_config/**", {
+		resetConfig: true
+	});
 };
-```
+{% endset %}
+{% include "snippets/configDefinition.njk" %}
+
+## Ignore Watching Files
+
+### `.gitignore`
+
+Eleventy will ignore changes to files or folders listed in your `.gitignore` file by default, [unless `setUseGitIgnore` is turned off](/docs/ignores/#opt-out-of-using-.gitignore).
+
+### Configuration API {% addedin "2.0.0-canary.18" %}
+
+Previously, [the configuration API ignores for template processing](/docs/ignores/#configuration-api) were also used as ignores for watching (e.g. `eleventyConfig.ignores.add("README.md")`).
+
+New in {{ "2.0.0-canary.18" | coerceVersion }}, watch target ignores now have their own dedicated API:
+
+{% set codeContent %}
+export default function(eleventyConfig) {
+	// Do not rebuild when README.md changes (You can use a glob here too)
+	eleventyConfig.watchIgnores.add("README.md");
+
+	// Or delete entries too
+	eleventyConfig.watchIgnores.delete("README.md");
+};
+{% endset %}
+{% include "snippets/configDefinition.njk" %}
+
+The `watchIgnores` Set starts with a default `**/node_modules/**` entry.
+
+## Watch JavaScript Dependencies {% addedin "0.7.0" %}
+
+When in `--watch` mode, Eleventy will spider the dependencies of your [JavaScript Templates](/docs/languages/javascript/) (`.11ty.js`), [JavaScript Data Files](/docs/data-js/) (`.11tydata.js` or `_data/**/*.js`), or Configuration File (usually `eleventy.config.js`) to watch those files too. Files in `node_modules` directories are ignored. This feature is _enabled by default_.
+
+{% set codeContent %}
+export default function(eleventyConfig) {
+	// Enabled by default
+	eleventyConfig.setWatchJavaScriptDependencies(false);
+};
+{% endset %}
+{% include "snippets/configDefinition.njk" %}
 
 ## Add delay before re-running {% addedin "0.11.0" %}
 
 A hardcoded amount of time Eleventy will wait before triggering a new build when files have changes during `--watch` or `--serve` modes. You probably won’t need this, but is useful in some edge cases with other task runners (Gulp, Grunt, etc).
 
-```js
-module.exports = function(eleventyConfig) {
-  // default is 0
-  eleventyConfig.setWatchThrottleWaitTime(100); // in milliseconds
+{% set codeContent %}
+export default function(eleventyConfig) {
+	// default is 0
+	eleventyConfig.setWatchThrottleWaitTime(100); // in milliseconds
 };
-```
+{% endset %}
+{% include "snippets/configDefinition.njk" %}
 
-## Opt-out of the BrowserSync JavaScript snippet {% addedin "1.0.0" %}
+## Advanced `chokidar` Configuration
 
-New in [`browser-sync@2.27.1`](https://github.com/BrowserSync/browser-sync/issues/1882#issuecomment-867767056) (available on Eleventy 1.0+). This opts-out of the JavaScript snippet normally injected by BrowserSync. Notably, this will disable BrowserSync live-reloading.
+Advanced [`chokidar` options](https://github.com/paulmillr/chokidar) can be defined using the `setChokidarConfig` configuration API method:
 
-```js
-module.exports = function(eleventyConfig) {
-  eleventyConfig.setBrowserSyncConfig({
-    snippet: false,
-  });
+{% set codeContent %}
+export default function(eleventyConfig) {
+	eleventyConfig.setChokidarConfig({
+		usePolling: true,
+		interval: 500,
+	});
 };
-```
+{% endset %}
+{% include "snippets/configDefinition.njk" %}
+
+{% callout "warn", "md" %}If you’re using [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/) and your project exists _outside_ of your home directory (`~`), you will likely want to use the `usePolling` feature to ensure watching works correctly. This is a WSL limitation.{% endcallout %}

@@ -1,44 +1,46 @@
-const fastglob = require("fast-glob");
-const getAuthors = require("../../config/getAuthorsFromSites");
+import fastglob from "fast-glob";
+import getAuthors from "../../config/getAuthorsFromSites.js";
 
-module.exports = async () => {
-  let sites = await fastglob("./src/_data/sites/*.json", {
-    caseSensitiveMatch: false
-  });
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
 
-  let authors = {};
-  for(let site of sites) {
-    let filename = site.split("/").pop();
-    let siteData = require(`./sites/${filename}`);
+export default async function () {
+	let sites = await fastglob("./src/_data/builtwith/*.json", {
+		caseSensitiveMatch: false,
+	});
 
-    siteData.fileSlug = filename.replace(/\.json/, "");
+	let authors = {};
+	for (let site of sites) {
+		let filename = site.split("/").pop();
+		let siteData = require(`./builtwith/${filename}`);
 
-    let names = getAuthors([siteData]);
-    for(let name of names) {
-      let key = name.toLowerCase();
-      if(!authors[key]) {
-        authors[key] = {
-          name: name,
-          sites: []
-        };
-      }
-      authors[key].sites.push(siteData);
-    }
-  }
+		siteData.fileSlug = filename.replace(/\.json/, "");
 
-  // Add BUSINESS info
-  for(let key in authors) {
-    for(let site of authors[key].sites) {
-      if(site.business) {
-        authors[key].business = site.business;
+		let names = getAuthors([siteData]);
+		for (let name of names) {
+			let key = name.toLowerCase();
+			if (!authors[key]) {
+				authors[key] = {
+					name: name,
+					sites: [],
+				};
+			}
+			authors[key].sites.push(siteData);
 
-        // Allow `business.name` but fallback to `site.name`
-        if(!authors[key].business.name) {
-          authors[key].business.name = site.name;
-        }
-      }
-    }
-  }
+			if (siteData.opened_by === name) {
+				// Add BUSINESS info
+				if (siteData.business_url) {
+					authors[key].business_url = siteData.business_url;
+					authors[key].business_name = siteData.business_name;
+				}
 
-  return authors;
-};
+				// Add opencollective username
+				if (siteData.opencollective && !authors[key].opencollective) {
+					authors[key].opencollective = siteData.opencollective;
+				}
+			}
+		}
+	}
+
+	return authors;
+}

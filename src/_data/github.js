@@ -1,22 +1,36 @@
-const Cache = require("@11ty/eleventy-cache-assets");
+import "dotenv/config";
+import EleventyFetch from "@11ty/eleventy-fetch";
 
-module.exports = async function() {
+export default async function () {
 	try {
 		// https://developer.github.com/v3/repos/#get
-		let json = await Cache("https://api.github.com/repos/11ty/eleventy", {
-			type: "json",
-			duration: process.env.ELEVENTY_SERVERLESS ? "*" : "1d",
-			directory: process.env.ELEVENTY_SERVERLESS ? "cache/" : ".cache/eleventy-cache-assets/",
-		});
+		let json = await EleventyFetch(
+			"https://api.github.com/repos/11ty/eleventy",
+			{
+				type: "json",
+				duration: "1d",
+				directory: ".cache/eleventy-fetch/",
+				dryRun: false,
+				fetchOptions: {
+					headers: {
+						Authorization: `bearer ${process.env.GITHUB_READ_TOKEN}`,
+					},
+				},
+			}
+		);
 
 		return {
-			stargazers: json.stargazers_count
+			stargazers: json.stargazers_count,
 		};
-	} catch(e) {
-		console.log( "Failed getting GitHub stargazers count, returning 0" );
+	} catch (e) {
+		// if(process.env.NODE_ENV === "production") {
+		// 	// Fail the build in production.
+		// 	return Promise.reject(e);
+		// }
+
+		console.log("Failed getting GitHub stargazers count, returning 0");
 		return {
-			stargazers: 0
+			stargazers: "",
 		};
 	}
-};
-
+}

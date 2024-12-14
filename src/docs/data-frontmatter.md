@@ -4,7 +4,10 @@ eleventyNavigation:
   key: Front Matter Data
   order: 1
 ---
+
 # Front Matter Data
+
+{% tableofcontents %}
 
 Add data in your template front matter, like this:
 
@@ -14,6 +17,7 @@ Add data in your template front matter, like this:
 ---
 title: My page title
 ---
+
 <!doctype html>
 <html>
 …
@@ -23,9 +27,10 @@ The above is using [YAML syntax](https://learnxinyminutes.com/docs/yaml/). You c
 
 Locally assigned front matter values override things further up the layout chain. Note also that layouts can contain front matter variables that you can use in your local template. Leaf template front matter takes precedence over layout front matter. Read more about [Layouts](/docs/layouts/).
 
-Note that only the [`permalink`](/docs/permalinks/) and [`eleventyComputed`](/docs/data-computed) front matter values can contain variables and shortcodes like you would use in the body of your templates. If you need to use variables or shortcodes in other front matter values, use `eleventyComputed` to set them. 
+Note that only the [`permalink`](/docs/permalinks/) and [`eleventyComputed`](/docs/data-computed) front matter values can contain variables and shortcodes like you would use in the body of your templates. If you need to use variables or shortcodes in other front matter values, use `eleventyComputed` to set them.
 
 ## Template Configuration
+
 <span id="user-defined-front-matter-customizations"></span>
 
 Eleventy allows many options to control how your template works. The most popular is [`permalink`](/docs/permalinks/), which allows you to change where the file goes on the file system. You can set these options in your front matter, or anywhere else in the [Data Cascade](/docs/data-cascade/). [Read more about Template Configuration](/docs/data-configuration/).
@@ -34,9 +39,15 @@ Eleventy allows many options to control how your template works. The most popula
 
 {% include "datasources.md" %}
 
-## Alternative Front Matter Formats
+## Front Matter Formats
 
-Eleventy uses the [`gray-matter` package](https://github.com/jonschlinkert/gray-matter) for front matter processing. `gray-matter` includes support for YAML, JSON, and even arbitrary JavaScript front matter.
+Eleventy uses the [`gray-matter` package](https://github.com/jonschlinkert/gray-matter) for front matter processing. `gray-matter` (and thus, Eleventy) includes support out of the box for `yaml`, `json`, and `js` front matter (with some [aliases](https://github.com/jonschlinkert/gray-matter/blob/ce67a86dba419381db0dd01cc84e2d30a1d1e6a5/lib/engine.js) also included).
+
+### Change the default format project-wide {% addedin "0.9.0" %}
+
+By default, `yaml` is used when a front matter syntax is not explicitly specified. You can change this project-wide with:
+
+{% include "snippets/frontmatter/default.njk" %}
 
 ### JSON Front Matter
 
@@ -46,14 +57,67 @@ Eleventy uses the [`gray-matter` package](https://github.com/jonschlinkert/gray-
   "title": "My page title"
 }
 ---
-<!doctype html>
+
+<!DOCTYPE html>
 <html>
-…
+	…
+</html>
 ```
 
-### JavaScript Front Matter
+### JavaScript Front Matter <span id="javascript-front-matter"></span>
 
-Note that Liquid templates do not allow executing a function in output `{% raw %}{{ currentDate() }}{% endraw %}`. However, the following example does work in Nunjucks:
+{% addedin "3.0.0-alpha.18" %}You can use any arbitrary JavaScript here and we’ll export all of the top level variables and functions to your template. This uses the [`node-retrieve-globals` library](https://github.com/zachleat/node-retrieve-globals).
+
+{% codetitle "Nunjucks", "Syntax" %}
+
+{% raw %}
+```html
+---js
+const title = "My page title";
+
+function currentDate() {
+	return (new Date()).toLocaleString();
+}
+---
+
+<h1>{{ title }}</h1>
+<p>Published on {{ currentDate() }}</p>
+```
+{% endraw %}
+
+_Warning: while Nunjucks and Liquid syntax are similar, the above example will **not** work in Liquid. Liquid does not allow function execution in output (e.g. `{% raw %}{{ currentDate() }}{% endraw %}`)._
+
+
+<details>
+<summary><strong>More Advanced Examples of JavaScript Front Matter</strong></summary>
+
+{% raw %}
+
+```js
+---js
+// async-friendly
+const myAsyncString = await Promise.resolve("HELLO FROM THE OTHER SIDE");
+
+// export via destructuring assignment
+const { myKey } = { myKey: "myValue" };
+const [ first, second ] = [ "first", "second" ];
+
+// export via dynamic import
+const { noop } = await import("@zachleat/noop");
+
+// access Node.js globals like console.log
+console.log({ noop });
+---
+<!-- The template content goes here -->
+```
+
+{% endraw %}
+
+</details>
+
+#### JavaScript Object Front Matter
+
+In previous versions of Eleventy, `js` front matter was required to use a JavaScript object notation. This method is still supported moving forward.
 
 {% codetitle "Nunjucks", "Syntax" %}
 
@@ -68,20 +132,22 @@ Note that Liquid templates do not allow executing a function in output `{% raw %
   }
 }
 ---
-<!doctype html>
-<html>
-<!-- … -->
-<body>
-  <h1>{{ title }}</h1>
-  <p>Published on {{ currentDate() }}</p>
-  <!-- … -->
+
+<h1>{{ title }}</h1>
+<p>Published on {{ currentDate() }}</p>
 ```
 {% endraw %}
 
+_Warning: while Nunjucks and Liquid syntax are similar, the above example will **not** work in Liquid. Liquid does not allow function execution in output (e.g. `{% raw %}{{ currentDate() }}{% endraw %}`)._
+
 ### Add your own format {% addedin "0.9.0" %}
 
-You can [customize Front Matter Parsing](/docs/data-frontmatter-customize/) in Eleventy to add your own custom format. We have an [example to do this with support for TOML](/docs/data-frontmatter-customize/#example-using-toml-for-front-matter-parsing).
+You can [customize Front Matter Parsing](/docs/data-frontmatter-customize/) in Eleventy to add your own custom format, and we provide examples for:
 
-## Advanced: Customize Front Matter Parsing {% addedin "0.9.0" %}
+- [JavaScript in front matter](/docs/data-frontmatter-customize/#example-use-javascript-in-your-front-matter).
+- [TOML in front matter](/docs/data-frontmatter-customize/#example-using-toml-for-front-matter-parsing).
+- You can also configure [front matter for customized excerpts](/docs/data-frontmatter-customize/).
 
-Configure [front matter for customized excerpts, TOML parsing, and more](/docs/data-frontmatter-customize/).
+## From the Community
+
+{% include "11tybundle.njk" %}

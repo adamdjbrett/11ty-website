@@ -7,6 +7,10 @@
 	"ext": "md",
 	"url": "/docs/languages/markdown/"
 },{
+	"name": "WebC",
+	"ext": "webc",
+	"url": "/docs/languages/webc/"
+},{
 	"name": "JavaScript",
 	"ext": "11ty.js",
 	"url": "/docs/languages/javascript/"
@@ -38,6 +42,18 @@
 	"name": "Pug",
 	"ext": "pug",
 	"url": "/docs/languages/pug/"
+},{
+	"name": "TypeScript",
+	"ext": "ts",
+	"url": "/docs/languages/typescript/"
+},{
+	"name": "JSX",
+	"ext": "jsx",
+	"url": "/docs/languages/jsx/"
+},{
+	"name": "MDX",
+	"ext": "mdx",
+	"url": "/docs/languages/mdx/"
 },{
 	"name": "Custom",
 	"ext": "*",
