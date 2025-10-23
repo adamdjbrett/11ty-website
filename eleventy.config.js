@@ -207,10 +207,10 @@ const shortcodes = {
 			"nejlepsiceskacasina-com",
 			"slovenskeonlinecasino-com",
 		]
-		let {image: url, name: username, hasDefaultAvatar, website} = supporter;
+		let {image: url, name: username} = supporter;
 		let alt = `Open Collective Avatar for ${username}`;
-		if(website && (hasDefaultAvatar || preferIndiewebAvatarSlugs.includes(supporter.slug))) {
-			return shortcodes.getIndieAvatarHtml(website);
+		if(preferIndiewebAvatarSlugs.includes(supporter.slug) && supporter.website) {
+			return shortcodes.getIndieAvatarHtml(supporter.website);
 		}
 		return `<img src="${url}" width="66" height="66" alt="${alt}" class="avatar avatar-large" loading="lazy" decoding="async" eleventy:optional>`;
 	},
@@ -712,6 +712,31 @@ ${text.trim()}
 		}
 	);
 
+	eleventyConfig.addShortcode(
+		"supporterAmount",
+		function (amount, maxAmount = 2000) {
+			// mostly fibonacci
+			let increments = [
+				5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584,
+			];
+			let incrementCounter = 0;
+			let fullHearts = [];
+			let emptyHearts = [];
+			let j = 0;
+			for (let k = amount; j <= k; j += increments[incrementCounter]) {
+				fullHearts.push("🎈");
+				incrementCounter++;
+			}
+			for (; j <= maxAmount; j += increments[incrementCounter]) {
+				emptyHearts.push("🎈");
+				incrementCounter++;
+			}
+			return `${fullHearts.join(
+				""
+			)}<span class="supporters-hearts-empty">${emptyHearts.join("")}</span>`;
+		}
+	);
+
 	eleventyConfig.addFilter("toISO", (dateObj) => {
 		return dateObj.toISOString();
 	});
@@ -841,9 +866,28 @@ ${text.trim()}
 		return num ? arr.slice(num) : arr;
 	});
 
-	eleventyConfig.addFilter("filterSupportersActive", (supporters) => {
+	eleventyConfig.addFilter("supportersFacepile", (supporters) => {
 		return supporters.filter((supporter) => {
-			return supporter.status === "ACTIVE";
+			return supporter.status === "ACTIVE" && !supporter.hasDefaultAvatar && [
+				"bca-account1", // website is buycheapaccounts.com
+				"baocasino", // gambling
+				"woorke", // sells social media accounts
+				"suominettikasinot24", // gambling
+				"masonslots", //gambling
+				"trust-my-paper", // selling term papers
+				"kiirlaenud", // some quick loans site
+				"kajino-bitcoin", // crypto
+				"seo25-com", // selling website traffic
+				"relief-factor", // profile link was some weird PDF
+				"targetedwebtraffic", // selling website traffic
+				"forexbrokerz", // crypto
+				"viewality-media", // broken site on wix?
+				"aviator-game1", // gambling
+				"igrovye-avtomaty", // gambling
+				"sidesmedia", // selling social media
+				"best-casinos-australia-bca", // gambling
+				"buy-tiktok-likes", // selling social media
+			].includes(supporter.slug) === false;
 		});
 	});
 

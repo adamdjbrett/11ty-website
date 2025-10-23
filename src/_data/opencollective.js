@@ -2,40 +2,6 @@
 import EleventyFetch from "@11ty/eleventy-fetch";
 import githubSponsors from "./githubSponsors.js";
 
-const CUMULATIVE_MINIMIUM = {
-	INDIVIDUAL: 55, // minimum total amount to show inactive logo
-	DEFAULT_AVATAR: 200, // minimum amount for default avatar (previously never shown)
-	ORGANIZATION: 999999, // minimum total amount to show inactive logo
-};
-
-const EXCLUDED_WEB_HOSTNAMES = [
-	"example.com",
-	"x.com",
-	"twitter.com",
-];
-
-const EXCLUDED_OPENCOLLECTIVE_USERNAME_SLUGS = [
-	"zach-leatherman", // me
-	"bca-account1", // website is buycheapaccounts.com
-	"baocasino", // gambling
-	"woorke", // sells social media accounts
-	"suominettikasinot24", // gambling
-	"masonslots", //gambling
-	"trust-my-paper", // selling term papers
-	"kiirlaenud", // some quick loans site
-	"kajino-bitcoin", // crypto
-	"seo25-com", // selling website traffic
-	"relief-factor", // profile link was some weird PDF
-	"targetedwebtraffic", // selling website traffic
-	"forexbrokerz", // crypto
-	"viewality-media", // broken site on wix?
-	"aviator-game1", // gambling
-	"igrovye-avtomaty", // gambling
-	"sidesmedia", // selling social media
-	"best-casinos-australia-bca", // gambling
-	"buy-tiktok-likes", // selling social media
-];
-
 function getAmortizedOneTimeDonations(orders) {
 	let total = 0;
 	let count = 0;
@@ -65,7 +31,10 @@ function getAmortizedOneTimeDonations(orders) {
 }
 
 function isMonthlyOrYearlyOrder(order) {
-	return (order.frequency === "MONTHLY" || order.frequency === "YEARLY") && order.status === "ACTIVE";
+	return (
+		(order.frequency === "MONTHLY" || order.frequency === "YEARLY") &&
+		order.status === "ACTIVE"
+	);
 }
 
 function getUniqueContributors(orders, githubSponsorsAmount) {
@@ -102,30 +71,15 @@ function getUniqueContributors(orders, githubSponsorsAmount) {
 		profile: 'https://opencollective.com/github-sponsors',
 		totalAmountDonated: githubSponsorsAmount,
 		isMonthly: true,
-		hasDefaultAvatar: false,
-		showOnFacepile: false,
+		hasDefaultAvatar: false
 	};
 
 	return Object.values(uniqueContributors);
 }
 
-function isAllowedUrl(websiteUrl) {
-	if(!websiteUrl) {
-		return false;
-	}
-
-	try {
-		let u = new URL(websiteUrl);
-		return EXCLUDED_WEB_HOSTNAMES.includes(u.hostname) === false;
-	} catch(e) {
-		return false;
-	}
-}
-
 export default async function () {
 	try {
-		// let url = `https://rest.opencollective.com/v2/11ty/orders/incoming?limit=1000&status=ACTIVE`;
-		let url = `https://rest.opencollective.com/v2/11ty/orders/incoming?limit=1000`;
+		let url = `https://rest.opencollective.com/v2/11ty/orders/incoming?limit=1000&status=ACTIVE`;
 		let json = await EleventyFetch(url, {
 			type: "json",
 			duration: "30m",
@@ -133,40 +87,21 @@ export default async function () {
 			dryRun: false,
 		});
 
-		if(json.nodes.length > 980) {
-			console.warn( json.nodes.length, "OpenCollective supporter results (careful when this hits the API max limit of 1000)" );
-		}
-
 		let orders = json.nodes
+			.filter(order => {
+				return order.status !== "CANCELLED";
+			})
 			.map((order) => {
 				order.name = order.fromAccount.name;
-				order.accountType = order.fromAccount.type;
 				order.slug = order.fromAccount.slug;
 				order.image = order.fromAccount.imageUrl;
-
-				if(isAllowedUrl(order.fromAccount.website)) {
-					order.website = order.fromAccount.website;
-				}
-
+				order.website = order.fromAccount.website;
 				order.profile = `https://opencollective.com/${order.slug}`;
-				order.totalAmountDonated = Number(order.totalDonations.value);
+				order.totalAmountDonated = order.totalDonations.value;
 				order.isMonthly = isMonthlyOrYearlyOrder(order);
 				order.hasDefaultAvatar =
 					order.image ===
 					`https://images.opencollective.com/${order.slug}/avatar.png`;
-
-				order.showOnFacepile = order.status === "ACTIVE" ||
-					order.accountType === "INDIVIDUAL" && order.totalAmountDonated > CUMULATIVE_MINIMIUM.INDIVIDUAL ||
-					order.accountType === "ORGANIZATION" && order.totalAmountDonated > CUMULATIVE_MINIMIUM.ORGANIZATION;
-
-				// Active orders usually *must* have an avatar (or a website)
-				if(order.hasDefaultAvatar && !order.website && order.accountType === "INDIVIDUAL") {
-					order.showOnFacepile = order.totalAmountDonated > CUMULATIVE_MINIMIUM.DEFAULT_AVATAR;
-				}
-
-				if(order.slug.startsWith("guest-")) {
-					order.showOnFacepile = false;
-				}
 
 				return order;
 			});
@@ -175,7 +110,6 @@ export default async function () {
 		orders.push({
 			name: "Zach Leatherman",
 			slug: "zach-leatherman",
-			accountType: "INDIVIDUAL",
 			github: "zachleat",
 			image:
 				"https://images.opencollective.com/zachleat/70606f4/avatar/256.png",
@@ -184,7 +118,6 @@ export default async function () {
 			totalAmountDonated: 0,
 			isMonthly: true,
 			hasDefaultAvatar: false,
-			showOnFacepile: false,
 		});
 
 		let onetimeDonations = getAmortizedOneTimeDonations(orders);
@@ -196,14 +129,11 @@ export default async function () {
 			return b.totalAmountDonated - a.totalAmountDonated;
 		});
 
-		let backersCount = orders.length - 1; // subtract one for hardcoded me
-
-		// Filter banned slugs (spam, donation terms violations)
-		orders = orders.filter(order => EXCLUDED_OPENCOLLECTIVE_USERNAME_SLUGS.includes(order.slug) === false);
+		let backers = orders.length;
 
 		return {
 			supporters: orders,
-			backersCount,
+			backers,
 			onetimeDonations,
 		};
 	} catch (e) {
@@ -220,6 +150,7 @@ export default async function () {
 				count: 0,
 				total: 0,
 			},
+			backers: 0,
 		};
 	}
 }
