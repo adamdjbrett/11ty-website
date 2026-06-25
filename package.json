@@ -88,5 +88,8 @@
     "lite-youtube-embed": "^0.3.3",
     "speedlify-score": "^4.0.4"
   },
-  "packageManager": "npm@11.14.0"
+  "packageManager": "npm@11.14.0",
+  "overrides": {
+    "undici": "~7.28.0"
+  }
 }
